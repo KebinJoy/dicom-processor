@@ -24,6 +24,7 @@ export const pool =
     port: Number(process.env.POSTGRES_PORT),
   });
 
+// For development, attach to global to reuse across hot reloads
 if (process.env.NODE_ENV !== 'production') {
   global.pgPool = pool;
 }
