@@ -1,0 +1,37 @@
+services:
+  minio:
+    # Use a recent MinIO image
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1
+    container_name: minio
+    ports:
+      # Map container ports to host ports (API on 9000, Console on 9001)
+      - '127.0.0.1:9000:9000'
+      - '127.0.0.1:9001:9001'
+    environment:
+      # Define root user and password for access
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: password
+      # Enable the MinIO web browser UI
+      MINIO_BROWSER: 'on'
+    command: ['server', '--console-address', ':9001', '/data']
+    volumes:
+      # Persist data even after the container is stopped/removed
+      - minio_data:/var/lib/s3
+
+  # postgres for dicom metadata storage
+  postgres:
+    image: postgres:16.2-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: dicom_metadata
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+volumes:
+  # volume for MinIO data persistence
+  minio_data:
+  # volume for PostgreSQL data persistence
+  postgres_data:
