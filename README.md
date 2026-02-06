@@ -2,39 +2,24 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. First copy the `.env.local` to the project root
+2. Run `docker compose up` from a terminal at project root. This will boot up postgres and minio bucket service. Ensure you have docker desktop running.
+3. Run `npm i`. If this fails, do `npm i --legacy-peer-deps`
+4. Run `npm run dev`
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+[http://localhost:3000/dicom/remote](http://localhost:3000/dicom/remote) will fetch dicom files from `https://d14fa38qiwhyfd.cloudfront.net/dicomweb` server. This is rendered client side using `@ohif/viewer` package.
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+## Bucket and Database
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+You can visit the bucket at [http://localhost:9001](http://localhost:9001) and use credentials from docker compose up to view persistent files that you have uploaded already.
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Use a database client to connect to `localhost:5432` with credentials in the docker compose up to view persistent database.
 
-## Learn More
+Data on both postgres and minio persists in the container volumes.
 
-To learn more about Next.js, take a look at the following resources:
+### TODO
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+1. `/dicom/local` to render local files using `@ohif/viewer`. This needs a study api endpoint.
+2. Add testing for apis and components.
