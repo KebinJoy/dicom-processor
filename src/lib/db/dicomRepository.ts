@@ -57,3 +57,25 @@ export async function insertDicomRecord(record: DicomFileRecord) {
     throw err;
   }
 }
+
+export async function getAllDicomFiles() {
+  const res = await pool.query(`
+    SELECT
+      id,
+      file_name,
+      object_key,
+      patient_id,
+      patient_name,
+      patient_birth_date,
+      study_instance_uid,
+      series_instance_uid,
+      sop_instance_uid,
+      modality,
+      study_date,
+      created_at
+    FROM dicom_files
+    ORDER BY created_at DESC
+  `);
+
+  return res.rows;
+}
