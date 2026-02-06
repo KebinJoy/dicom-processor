@@ -1,22 +1,38 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { UploadItem, Result } from '@/types/dicom';
 
-export default function UploadDicom() {
+function fingerprint(file: File) {
+  return `${file.name}-${file.size}-${file.lastModified}`;
+}
+
+export default function UploadDicom({
+  onUploadSuccess,
+}: {
+  onUploadSuccess: () => void;
+}) {
   const [items, setItems] = useState<UploadItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
+  const addFiles = useCallback((fileList: FileList | File[] | null) => {
+    if (!fileList) return;
+    setItems((prev) => {
+      const existingIds = new Set(prev.map((f) => f.id));
+      const next: UploadItem[] = [...prev];
 
-    const newItems: UploadItem[] = Array.from(e.target.files).map((file) => ({
-      file,
-    }));
+      Array.from(fileList).forEach((file) => {
+        const id = fingerprint(file);
+        if (!existingIds.has(id)) {
+          next.push({ id, file });
+          existingIds.add(id);
+        }
+      });
 
-    setItems((prev) => [...prev, ...newItems]);
-  };
-
+      return next;
+    });
+  }, []);
   const upload = async () => {
     if (!items.length || uploading) return;
 
@@ -25,7 +41,6 @@ export default function UploadDicom() {
 
     const formData = new FormData();
     items.forEach((i) => formData.append('file', i.file));
-
     setItems((prev) => prev.map((i) => ({ ...i, status: 'uploading' })));
 
     try {
@@ -43,14 +58,11 @@ export default function UploadDicom() {
             (r: Result) => r.file === item.file.name,
           );
           if (!result) return item;
-
-          return {
-            ...item,
-            status: result.status,
-            message: result.message,
-          };
+          return { ...item, status: result.status, message: result?.message };
         }),
       );
+
+      onUploadSuccess();
     } catch (err: unknown) {
       if (err instanceof Error && err.name !== 'AbortError') {
         console.error(err);
@@ -64,23 +76,43 @@ export default function UploadDicom() {
     return () => abortRef.current?.abort();
   }, []);
 
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    addFiles(e.dataTransfer.files);
+  };
+
   return (
-    <div className=" shadow rounded-2xl p-4 mt-6">
+    <div className="shadow rounded-2xl p-4 mt-6">
       <h2 className="text-xl font-semibold mb-4">Upload DICOM Files</h2>
 
-      <div className="border-2 border-dashed rounded-xl p-6 mb-4 text-center text-gray-500">
-        Drag & Drop area coming soon
-      </div>
-
-      <input type="file" multiple accept=".dcm" onChange={handleFileSelect} />
-
-      <button
-        onClick={upload}
-        disabled={uploading}
-        className="ml-4 bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+      <div
+        onDrop={onDrop}
+        onDragOver={(e) => e.preventDefault()}
+        className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer"
+        onClick={() => inputRef.current?.click()}
       >
-        {uploading ? 'Uploading...' : 'Upload'}
-      </button>
+        <p className="text-gray-900 mb-3">
+          Drag & Drop DICOM files or click to select
+        </p>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            upload();
+          }}
+          disabled={uploading}
+          className="bg-blue-900 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+        >
+          {uploading ? 'Uploading...' : 'Upload Files'}
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          multiple
+          accept=".dcm"
+          hidden
+          onChange={(e) => addFiles(e.target.files)}
+        />
+      </div>
 
       <div className="mt-4 space-y-2">
         {items.map((item, i) => (

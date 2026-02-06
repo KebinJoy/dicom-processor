@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DicomFile } from '@/types/dicom';
 
 export default function DicomList({
@@ -6,8 +6,17 @@ export default function DicomList({
 }: {
   initialFiles: DicomFile[];
 }) {
-  const [files] = useState(initialFiles);
+  const [files, setFiles] = useState(initialFiles);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    async function refetch() {
+      const res = await fetch('/api/dicom-files');
+      const data = await res.json();
+      setFiles(data);
+    }
+    refetch();
+  }, []);
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {

@@ -14,6 +14,7 @@ export type Result = {
 };
 
 export type UploadItem = {
+  id: string;
   file: File;
   status?: 'success' | 'error' | 'uploading';
   message?: string;
