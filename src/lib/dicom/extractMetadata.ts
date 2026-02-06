@@ -12,7 +12,7 @@ export function extractMetadata(buffer: Buffer) {
       try {
         return dataSet.string(tag);
       } catch (err) {
-        console.log(`⚠️ Field ${tag} not found or error reading it`);
+        console.log(`⚠️ Field ${tag} not found or error reading it. ${err}`);
         return undefined;
       }
     };

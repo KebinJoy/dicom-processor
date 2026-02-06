@@ -5,7 +5,7 @@ import { IncomingMessage } from 'http';
 export async function parseMultipart(req: IncomingMessage) {
   const form = formidable({ multiples: true });
 
-  const [_fields, files] = await form.parse(req);
+  const [, files] = await form.parse(req);
 
   const uploaded = Array.isArray(files.file) ? files.file : [files.file];
 
